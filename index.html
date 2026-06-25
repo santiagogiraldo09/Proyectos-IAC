@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Repositorio de Proyectos IAC</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#686868; }
+    header {
+  background: linear-gradient(135deg, #fbaf33, #e89b22);
+  color: white;
+  padding: 50px 20px 60px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(251,175,51,0.4);
+}
+
+header p {
+  margin-top: 12px;
+  font-size: 18px;
+  opacity: 0.9;
+  color: #f5f5f5;
+}
+
+/* efecto decorativo */
+header::after {
+  content: "";
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  background: #686868;
+  border-top-left-radius: 50% 100%;
+  border-top-right-radius: 50% 100%;
+}
+    .container { padding:20px; background:#f4f6f8; border-radius:20px; margin:20px; }
+
+    input {
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      margin-bottom:20px;
+      box-sizing:border-box; /* evita que sobrepase el contenedor */
+    }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+
+    .card {
+      background:white; border-radius:16px; overflow:hidden; cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:0.2s;
+    }
+    .card:hover { transform:translateY(-6px); box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+
+    .card img { width:100%; height:160px; object-fit:cover; }
+    .card-content { padding:14px; }
+    .card-title { font-weight:bold; margin-bottom:6px; }
+    .card-desc {
+      font-size:13px; color:#555;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.6);
+      align-items:center; justify-content:center;
+    }
+
+    .modal-content {
+      background:white; width:80%; max-width:1000px; border-radius:16px; overflow:hidden;
+      display:flex;
+    }
+
+    .modal-left { flex:2; padding:24px; overflow-y:auto; }
+    .modal-right { flex:1; background:#f1f3f5; padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
+
+    .badge {
+      display:inline-block;
+      padding:6px 10px;
+      margin:4px;
+      background:#fff3e0;
+      color:#fbaf33;
+      border-radius:8px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin-top:12px;
+      padding:12px 18px;
+      background:#fbaf33;
+      color:#000;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:700;
+      transition:0.2s;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover {
+      background:#686868;
+      color: #FFFFFF;
+      transform:translateY(-2px);
+    }
+
+    .btn.secondary {
+      background:#686868;
+      color:#fbaf33;
+      border:1px solid #fbaf33;
+    }
+
+    .btn.secondary:hover {
+      background:#000;
+    }
+
+    
+
+    .close { float:right; cursor:pointer; font-size:18px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Repositorio de Proyectos IAC</h1>
+  <p>Explora las soluciones, automatizaciones y desarrollos creados por IAC</p>
+</header>
+
+<div class="container">
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+    <input type="text" id="searchInput" placeholder="Buscar por nombre o  descripción..." onkeyup="filtrar()" style="flex:2;">
+    <select id="categoriaFilter" onchange="filtrar()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ccc; height:42px; box-sizing:border-box;">
+      <option value="">Todas las categorías</option>
+    </select>
+  </div>
+  <div class="grid" id="gridProyectos"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div class="modal-left">
+      <span class="close" onclick="cerrarModal()">✖</span>
+      <h2 id="modalTitulo"></h2>
+      <h4>Descripción</h4>
+      <p id="modalDescripcion"></p>
+      <a id="modalVideoLink" class="btn secondary" target="_blank" style="display:none; margin-top:10px;">▶ Ver video</a>
+    </div>
+    <div class="modal-right">
+      <div>
+        <h4>Herramientas</h4>
+        <div id="modalAplicativo"></div>
+      </div>
+      <a id="modalLink" class="btn" target="_blank">🚀 Abrir proyecto</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const proyectos = [
+  // Agrega el campo categoria a cada proyecto
+  {
+    nombre: "Aplicación Plan de desarrollo individual",
+    categoria: "Aplicativos",
+    aplicativo: "Power Apps, Power Automate",
+    descripcionCorta: "Gestión del plan de desarrollo individual",
+    descripcion: "Aplicación para la gestión del plan de desarrollo individual (PDI) de la organización, en donde se crean y se realiza seguimineto a las objetivos y acciones de cada uno de los roles de la organización",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/PD1.png",
+    video: "https://iacsas-my.sharepoint.com/personal/isabel_ramirez_iaclatam_com/_layouts/15/stream.aspx?id=%2Fpersonal%2Fisabel%5Framirez%5Fiac%5Fcom%5Fco%2FDocuments%2FIAC%2FIAC%2FREPOSITORIO%20PROYECTOS%20IAC%2FVIDEOS%2FProyecto%20Plan%20de%20desarrollo%20individual%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Ec84a7f89%2D97b8%2D4a82%2Db354%2De07e3e02dd8c",
+    link: "https://apps.powerapps.com/play/e/default-f20cbde7-1c45-44a0-89c5-63a25c557ef8/a/e2809780-248b-4867-b541-877ca06a7de7?tenantId=f20cbde7-1c45-44a0-89c5-63a25c557ef8&hint=8e41c288-b2fd-44fa-b2dc-38d59ad34724&sourcetime=1706299757279#"
+  },
+  {
+    nombre: "Bitácora",
+    categoria: "IA",
+    aplicativo: "Python, Servicios Azure",
+    descripcionCorta: "Registro de actividades mediante comando de voz",
+    descripcion: "Aplicación para el registro y seguimiento de actividades por medio de comando de voz y texto",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/bitacora1.png",
+    video: "https://iacsas-my.sharepoint.com/personal/isabel_ramirez_iaclatam_com/_layouts/15/stream.aspx?id=%2Fpersonal%2Fisabel%5Framirez%5Fiac%5Fcom%5Fco%2FDocuments%2FIAC%2FIAC%2FREPOSITORIO%20PROYECTOS%20IAC%2FVIDEOS%2FVideo%20Bitacora%20IAC%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E46aa46e7%2D091f%2D492f%2D9409%2Dda73a88e80fe",
+    link: ""
+  },
+  {
+    nombre: "Aplicación gestión del tiempo",
+    categoria: "Aplicativos",
+    aplicativo: "Power Apps, Power Automate",
+    descripcionCorta: "Aplicación para la gestión de solicitudes de días libres",
+    descripcion: "Aplicación para la gestión de solicitudes de días libres, en donde se solicitan dependiendo del tipo de días y se envían notificaciones al jefe inmediato para su aprobación. Una vez se aprueba por parte del jefe inmediato se envía notificación al área administrativa",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/dias1.png",
+    video: "https://www.youtube.com/watch?v=mck-5UeBwao",
+    link: "https://apps.powerapps.com/play/e/default-f20cbde7-1c45-44a0-89c5-63a25c557ef8/a/5c6f98a5-c7d8-4972-be92-378e5f1c2e59?tenantId=f20cbde7-1c45-44a0-89c5-63a25c557ef8"
+  },
+  {
+    nombre: "Automatización conexión SIIGO y SalesForce para gestión de recibo de caja",
+    categoria: "Automatización",
+    aplicativo: "Python, Siigo, SalesForce",
+    descripcionCorta: "Gestión de recibo de caja entre Siigo y Salesforce",
+    descripcion: "Automatización que permite que  Cuando se crea un nuevo recibo de caja en SIIGO este valida en Salesforce la factura  y si esta asociada  a una cartera ya existente  actualiza los campos de  abono y fecha abono para el control de la cartera. Si no encuentra la factura en Salesforce envia correo al responsable para su revisión",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/SIIgo1-SF.png",
+    video: "https://iacsas-my.sharepoint.com/personal/isabel_ramirez_iaclatam_com/_layouts/15/stream.aspx?id=%2Fpersonal%2Fisabel%5Framirez%5Fiac%5Fcom%5Fco%2FDocuments%2FIAC%2FIAC%2FREPOSITORIO%20PROYECTOS%20IAC%2FVIDEOS%2FAutomatizaion%20Siigo%20%2D%20SF%20%2D%20Correo%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eeb0d3771%2De25b%2D48bb%2Dabb0%2D3f4a8b50cc6d",
+    link: ""
+  },
+  {
+    nombre: "Automatización del proceso de selección de personal",
+    categoria: "Automatización",
+    aplicativo: "Power Automate, créditos AI Builder",
+    descripcionCorta: "automatización del proceso de selección de hojas de vida",
+    descripcion: "Automatización que permite seleccionar a los candidatos más adecuados que se ajustan al perfil que se requiere dentro de la organización,el flujo asigna un porcentaje de compatibilidad para que las personas de recursos humanos puedan centrar sus esfuerzos en los candidatos que verdaderamente cumplen con la mayoría de requisitos",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/seleccion%20per.png",
+    video: "https://iacsas-my.sharepoint.com/personal/isabel_ramirez_iaclatam_com/_layouts/15/stream.aspx?id=%2Fpersonal%2Fisabel%5Framirez%5Fiac%5Fcom%5Fco%2FDocuments%2FIAC%2FIAC%2FREPOSITORIO%20PROYECTOS%20IAC%2FVIDEOS%2FAutomatizaion%20Siigo%20%2D%20SF%20%2D%20Correo%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eeb0d3771%2De25b%2D48bb%2Dabb0%2D3f4a8b50cc6d",
+    link: ""
+  },
+    {
+    nombre: "Chatbot para la generación de documentación o presentaciones",
+    categoria: "Chatbot",
+    aplicativo: "Python, Microsoft Teams",
+    descripcionCorta: "automatización de la creación y edición de documentos y presentaciones",
+    descripcion: "automatiza la creación y edición de presentaciones y documentos utilizando lenguaje natural. El usuario describe lo que necesita en el chat y el bot genera o modifica el archivo directamente en OneDrive/SharePoint y notifica al usuario con un enlace para abrir el documento actualziado.",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/chatbot.png",
+    video: "",
+    link: ""
+  },
+    {
+    nombre: "Digitalización del proceso de gestión de competencias",
+    categoria: "Digitalización de procesos",
+    aplicativo: "Power BI,Power Apps, Power automate",
+    descripcionCorta: "Digitalización y automatización del proceso de gestión de competencias de la organización",
+    descripcion: "En este proyecto se realizó un aplicativo en Power apps para digitalizar la captura y actualización de los datos relacionados con las competencias con las que debe cumplir cada uno de los roles de la organización, adicional se crearon flujos de Power Automate para gestionar notificaciones y un informe en Power BI para analítica de los datos recopilados",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/digitalizaci%C3%B3n.png",
+    video: "https://iacsas-my.sharepoint.com/personal/isabel_ramirez_iaclatam_com/_layouts/15/stream.aspx?id=%2Fpersonal%2Fisabel%5Framirez%5Fiac%5Fcom%5Fco%2FDocuments%2FIAC%2FIAC%2FREPOSITORIO%20PROYECTOS%20IAC%2FVIDEOS%2FAnalitica%20de%20datos%20para%20gesti%C3%B3n%20de%20compencias%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Ee672ed27%2Dae0a%2D4ba0%2Dbde3%2Dcb1a5c0789a6",
+    link: ""
+  },
+   {
+    nombre: "Predicción de abastecimiento de materia prima",
+    categoria: "IA",
+    aplicativo: "Python",
+    descripcionCorta: "Inteligencia artificial para la predicción de abastecimiento de materia prima",
+    descripcion: "Proyecto que permite mediante inteligencia artificial que permite predecir las cantidades necesarias de materia prima de acuerdo con los pedidos y la cantidad existente en el inventario, con el fin de mitigar el desabastecimiento o sobreabastecimiento. Este proyecto entrega los resultados en un archivo de excel",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/inventario.png",
+    video: "https://youtu.be/NHbE3Vwb-DU?si=85_7YiT5K0ys0Mhr",
+    link: ""
+  },
+   {
+    nombre: "Chatbot para consulta de documentación relacionada con el POT",
+    categoria: "Chatbot",
+    aplicativo: "Servicios Azure: arquitectura RAG, Teams, Copilot Studio",
+    descripcionCorta: "Consulta de documentos POT en lenguaje natural",
+    descripcion: "Automatización de la consulta de documentos relacionados con POT. Se realizan preguntas a los documentos de forma natural a traves de la interfaz de Microsoft Teams",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/bot%20pot.png",
+    video: "",
+    link: ""
+  },
+   {
+    nombre: "Automatización de procesos de importación",
+    categoria: "Automatización",
+    aplicativo: "Servicios Azure: arquitectura RAG, Teams, Copilot Studio",
+    descripcionCorta: "Consulta de documentos POT en lenguaje natural",
+    descripcion: "Automatización de la consulta de documentos relacionados con POT. Se realizan preguntas a los documentos de forma natural a traves de la interfaz de Microsoft Teams",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/importacon.png",
+    video: "",
+    link: ""
+  },
+   {
+    nombre: "Digitalización del proceso de gestión de proyectos navales",
+    categoria: "Digitalización de procesos",
+    aplicativo: "Power BI,Power Apps, Power automate, Forms",
+    descripcionCorta: "Digitalización y automatización del proceso de gestión de proyectos de la organización",
+    descripcion: "En este proyecto se realizó un aplicativo responsive (para cualquier dispositivo) en Power apps para digitalizar el seguimiento de los proyectos ejecutados por la organización, adicional se crearon flujos de Power Automate para gestionar notificaciones, solución de preguntas por parte de los clientes y un informe en Power BI para analítica de los datos recopilados",
+    imagen: "https://iacsas.sharepoint.com/sites/IAC/Shared%20Documents/General/00%20MAPA%20PROCESOS/11%20REPOSITORIO%20IAC/digitalizacion2.png",
+    video: "",
+    link: ""
+  }
+];
+
+let proyectosFiltrados = [...proyectos];
+
+function render(data) {
+  const grid = document.getElementById("gridProyectos");
+  grid.innerHTML = "";
+  proyectosFiltrados = data;
+
+  data.forEach((p, i) => {
+    grid.innerHTML += `
+      <div class="card" onclick="abrirModal(${i})">
+        <img src="${p.imagen}">
+        <div class="card-content">
+          <div class="card-title">${p.nombre}</div>
+          <div class="card-desc">${p.descripcionCorta}</div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function filtrar() {
+  const texto = document.getElementById("searchInput").value.toLowerCase();
+  const categoria = document.getElementById("categoriaFilter").value;
+
+  const filtrados = proyectos.filter(p => 
+    (p.nombre.toLowerCase().includes(texto) ||
+    p.descripcion.toLowerCase().includes(texto) ||
+    p.aplicativo.toLowerCase().includes(texto))
+    && (categoria === "" || p.categoria === categoria)
+  );
+
+  render(filtrados);
+}
+
+function abrirModal(index) {
+  const p = proyectosFiltrados[index];
+  document.getElementById("modalTitulo").innerText = p.nombre;
+  document.getElementById("modalDescripcion").innerText = p.descripcion;
+
+  const cont = document.getElementById("modalAplicativo");
+  cont.innerHTML = "";
+  p.aplicativo.split(",").forEach(h => {
+    cont.innerHTML += `<span class="badge">${h.trim()}</span>`;
+  });
+
+  // Mostrar botón de video si existe
+  const videoBtn = document.getElementById("modalVideoLink");
+  if (p.video && p.video.trim() !== "") {
+    videoBtn.href = p.video;
+    videoBtn.style.display = "inline-flex";
+  } else {
+    videoBtn.style.display = "none";
+    videoBtn.removeAttribute("href");
+  }
+  
+  const linkBtn = document.getElementById("modalLink");
+  if (p.link && p.link.trim() !== "") {
+    linkBtn.href = p.link;
+    linkBtn.style.display = "inline-flex";
+  } else {
+    linkBtn.style.display = "none";
+  }
+
+  document.getElementById("modal").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modal").style.display = "none";
+  
+}
+
+cargarCategorias();
+render(proyectos);
+
+function cargarCategorias() {
+  const select = document.getElementById("categoriaFilter");
+  const categorias = [...new Set(proyectos.map(p => p.categoria))];
+
+  categorias.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    select.appendChild(option);
+  });
+}
+
+</script>
+
+</body>
+</html>
